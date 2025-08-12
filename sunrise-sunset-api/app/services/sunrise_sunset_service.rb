@@ -39,10 +39,14 @@ class SunriseSunsetService
 
     date_range = (end_date - start_date).to_i + 1
     if date_range > MAX_DATE_RANGE_DAYS
-      raise DateRangeError, "Date range cannot exceed #{MAX_DATE_RANGE_DAYS} days"
+      raise DateRangeError, "Date range cannot exceed #{MAX_DATE_RANGE_DAYS} days (requested: #{date_range})"
     end
 
-    # Prevent requests for dates too far in the future
+    # Prevent requests for dates too far in the past (data might be unreliable)
+    if start_date < Date.new(1900, 1, 1)
+      raise DateRangeError, "Cannot fetch data for dates before 1900"
+    end
+
     if start_date > Date.current + 1.year
       raise DateRangeError, "Cannot fetch data for dates more than 1 year in the future"
     end
@@ -197,10 +201,16 @@ class SunriseSunsetService
   def parse_time_simple(time_string)
     return nil if time_string.blank?
 
-    # The API returns times like "7:06:58 AM" - we need to parse these
-    # and assume they're in the local timezone for the location
-    Time.parse(time_string)
-  rescue ArgumentError
+    # Handle both "7:06:58 AM" and ISO format
+    if time_string.match?(/^\d{1,2}:\d{2}:\d{2}\s?(AM|PM)$/i)
+      Time.parse(time_string)
+    elsif time_string.match?(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
+      Time.parse(time_string)
+    else
+      Time.parse(time_string)
+    end
+  rescue ArgumentError => e
+    Rails.logger.warn "Failed to parse time '#{time_string}': #{e.message}"
     nil
   end
 

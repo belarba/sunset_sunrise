@@ -1,3 +1,4 @@
+# app/controllers/api/v1/sunrise_sunset_controller.rb
 class Api::V1::SunriseSunsetController < ApplicationController
   before_action :validate_params, only: [:index]
 
@@ -54,10 +55,11 @@ class Api::V1::SunriseSunsetController < ApplicationController
   def locations
     # Return recently searched locations for autocomplete
     cache_expires_in = ENV.fetch('LOCATIONS_CACHE_EXPIRES_IN') { 3600 }.to_i
+    cache_key = "recent_locations_v2:#{Date.current}"
 
     locations = begin
       if Rails.cache.respond_to?(:fetch)
-        Rails.cache.fetch('recent_locations', expires_in: cache_expires_in.seconds) do
+        Rails.cache.fetch(cache_key, expires_in: cache_expires_in.seconds) do
           get_recent_locations
         end
       else
@@ -70,7 +72,16 @@ class Api::V1::SunriseSunsetController < ApplicationController
 
     render json: {
       status: 'success',
-      locations: locations
+      locations: locations,
+      cached_at: Time.current
+    }
+  end
+
+  def health
+    render json: {
+      status: 'healthy',
+      timestamp: Time.current,
+      version: Rails.application.config.respond_to?(:app_version) ? Rails.application.config.app_version : '1.0.0'
     }
   end
 
@@ -88,16 +99,6 @@ class Api::V1::SunriseSunsetController < ApplicationController
     Rails.logger.error "Database error in locations: #{e.message}"
     []
   end
-
-  def health
-    render json: {
-      status: 'healthy',
-      timestamp: Time.current,
-      version: Rails.application.config.respond_to?(:app_version) ? Rails.application.config.app_version : '1.0.0'
-    }
-  end
-
-  private
 
   def validate_params
     required_params = %w[location start_date end_date]

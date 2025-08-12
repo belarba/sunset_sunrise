@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_12_174538) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_12_185850) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -29,8 +29,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_12_174538) do
     t.json "raw_api_data"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["date", "created_at"], name: "idx_date_created_performance"
     t.index ["date"], name: "index_sunrise_sunset_data_on_date"
     t.index ["latitude", "longitude", "date"], name: "index_sunrise_sunset_data_on_location_and_date", unique: true
+    t.index ["location", "date"], name: "idx_location_date_lookup"
     t.index ["location"], name: "index_sunrise_sunset_data_on_location"
   end
 end
