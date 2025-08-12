@@ -1,0 +1,24 @@
+# config/database.yml
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  timeout: <%= ENV.fetch("QUERY_TIMEOUT") { 5000 } %>
+  host: <%= ENV.fetch("DATABASE_HOST") { "localhost" } %>
+  port: <%= ENV.fetch("DATABASE_PORT") { 5432 } %>
+  username: <%= ENV.fetch("DATABASE_USERNAME") { "postgres" } %>
+  password: <%= ENV.fetch("DATABASE_PASSWORD") { "password" } %>
+
+development:
+  <<: *default
+  database: <%= ENV.fetch("DATABASE_NAME_DEVELOPMENT") { "sunrise_sunset_development" } %>
+
+test:
+  <<: *default
+  database: <%= ENV.fetch("DATABASE_NAME_TEST") { "sunrise_sunset_test" } %>
+
+production:
+  <<: *default
+  database: <%= ENV.fetch("DATABASE_NAME_PRODUCTION") { "sunrise_sunset_production" } %>
+  pool: <%= ENV.fetch("CONNECTION_POOL_SIZE") { 20 } %>
+  sslmode: prefer
