@@ -1,11 +1,10 @@
 require 'rails_helper'
 
 RSpec.describe SunriseSunsetData, type: :model do
+  let(:location) { create(:location, :lisbon) }
   let(:valid_attributes) do
     {
-      location: 'Lisbon, Portugal',
-      latitude: 38.7223,
-      longitude: -9.1393,
+      location: location,
       date: Date.today,
       sunrise: Time.parse('06:30:00 UTC'),
       sunset: Time.parse('19:45:00 UTC'),
@@ -23,19 +22,7 @@ RSpec.describe SunriseSunsetData, type: :model do
     it 'requires location' do
       subject.location = nil
       expect(subject).not_to be_valid
-      expect(subject.errors[:location]).to include("can't be blank")
-    end
-
-    it 'requires latitude' do
-      subject.latitude = nil
-      expect(subject).not_to be_valid
-      expect(subject.errors[:latitude]).to include("can't be blank")
-    end
-
-    it 'requires longitude' do
-      subject.longitude = nil
-      expect(subject).not_to be_valid
-      expect(subject.errors[:longitude]).to include("can't be blank")
+      expect(subject.errors[:location]).to include("must exist")
     end
 
     it 'requires date' do
@@ -44,48 +31,28 @@ RSpec.describe SunriseSunsetData, type: :model do
       expect(subject.errors[:date]).to include("can't be blank")
     end
 
-    it 'validates latitude range' do
-      subject.latitude = 91
-      expect(subject).not_to be_valid
-      expect(subject.errors[:latitude]).to include('must be less than or equal to 90')
-
-      subject.latitude = -91
-      expect(subject).not_to be_valid
-      expect(subject.errors[:latitude]).to include('must be greater than or equal to -90')
-    end
-
-    it 'validates longitude range' do
-      subject.longitude = 181
-      expect(subject).not_to be_valid
-      expect(subject.errors[:longitude]).to include('must be less than or equal to 180')
-
-      subject.longitude = -181
-      expect(subject).not_to be_valid
-      expect(subject.errors[:longitude]).to include('must be greater than or equal to -180')
-    end
-
     it 'validates uniqueness of location and date combination' do
       subject.save!
 
       duplicate = described_class.new(valid_attributes)
       expect(duplicate).not_to be_valid
-      expect(duplicate.errors[:latitude]).to include('has already been taken')
+      expect(duplicate.errors[:location_id]).to include('has already been taken')
     end
   end
 
   describe 'scopes' do
     before do
-      @lisbon_data = create(:sunrise_sunset_data,
-        latitude: 38.7223, longitude: -9.1393, date: Date.today)
-      @berlin_data = create(:sunrise_sunset_data,
-        latitude: 52.5200, longitude: 13.4050, date: Date.today)
-      @old_data = create(:sunrise_sunset_data,
-        latitude: 38.7223, longitude: -9.1393, date: 1.week.ago)
+      @lisbon_location = create(:location, :lisbon)
+      @berlin_location = create(:location, :berlin)
+
+      @lisbon_data = create(:sunrise_sunset_data, location: @lisbon_location, date: Date.today)
+      @berlin_data = create(:sunrise_sunset_data, location: @berlin_location, date: Date.today)
+      @old_data = create(:sunrise_sunset_data, location: @lisbon_location, date: 1.week.ago)
     end
 
     describe '.by_location' do
-      it 'filters by latitude and longitude' do
-        results = described_class.by_location(38.7223, -9.1393)
+      it 'filters by location' do
+        results = described_class.by_location(@lisbon_location)
         expect(results).to include(@lisbon_data, @old_data)
         expect(results).not_to include(@berlin_data)
       end
@@ -151,21 +118,24 @@ RSpec.describe SunriseSunsetData, type: :model do
         expect(subject.polar_night?).to be false
       end
     end
+
+    describe '#latitude and #longitude delegation' do
+      it 'delegates to location' do
+        expect(subject.latitude).to eq(subject.location.latitude)
+        expect(subject.longitude).to eq(subject.location.longitude)
+      end
+    end
   end
 
   describe '.find_or_fetch_data' do
     it 'returns existing data when found' do
       existing = create(:sunrise_sunset_data, valid_attributes)
-      result = described_class.find_or_fetch_data(
-        existing.latitude, existing.longitude, existing.location, existing.date
-      )
+      result = described_class.find_or_fetch_data(existing.location, existing.date)
       expect(result).to eq(existing)
     end
 
     it 'returns nil when data not found' do
-      result = described_class.find_or_fetch_data(
-        38.7223, -9.1393, 'Lisbon', Date.today
-      )
+      result = described_class.find_or_fetch_data(location, Date.today)
       expect(result).to be_nil
     end
   end
@@ -176,6 +146,9 @@ RSpec.describe SunriseSunsetData, type: :model do
       expect(json).to have_key('day_length_formatted')
       expect(json).to have_key('polar_day?')
       expect(json).to have_key('polar_night?')
+      expect(json).to have_key('latitude')
+      expect(json).to have_key('longitude')
+      expect(json).to have_key('location_name')
       expect(json).not_to have_key('raw_api_data')
     end
   end

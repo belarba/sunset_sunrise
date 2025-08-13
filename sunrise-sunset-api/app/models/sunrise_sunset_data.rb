@@ -1,21 +1,23 @@
 class SunriseSunsetData < ApplicationRecord
-  validates :location, presence: true
-  validates :latitude, presence: true,
-            numericality: { greater_than_or_equal_to: -90, less_than_or_equal_to: 90 }
-  validates :longitude, presence: true,
-            numericality: { greater_than_or_equal_to: -180, less_than_or_equal_to: 180 }
-  validates :date, presence: true
-  validates :latitude, uniqueness: { scope: [:longitude, :date] }
+  belongs_to :location
 
-  scope :by_location, ->(lat, lng) { where(latitude: lat, longitude: lng) }
+  validates :date, presence: true
+  validates :location_id, uniqueness: { scope: :date }
+
+  scope :by_location, ->(location) { where(location: location) }
   scope :by_date_range, ->(start_date, end_date) { where(date: start_date..end_date) }
   scope :recent, -> { order(date: :desc) }
 
-  def self.find_or_fetch_data(latitude, longitude, location, date)
-    existing_data = find_by(latitude: latitude, longitude: longitude, date: date)
+  delegate :latitude, :longitude, :display_name, :polar_region?, to: :location
+  alias_method :location_name, :display_name
+
+  def self.find_or_fetch_data(location, date)
+    existing_data = joins(:location)
+                   .where(locations: { id: location.id }, date: date)
+                   .first
     return existing_data if existing_data
 
-    # If data doesn't exist, it will be fetched by the service
+    # Se não existe, retorna nil - será criado pelo service
     nil
   end
 
@@ -37,7 +39,7 @@ class SunriseSunsetData < ApplicationRecord
 
   def as_json(options = {})
     super(options.merge(
-      methods: [:day_length_formatted, :polar_day?, :polar_night?],
+      methods: [:day_length_formatted, :polar_day?, :polar_night?, :latitude, :longitude, :location_name],
       except: [:raw_api_data]
     ))
   end

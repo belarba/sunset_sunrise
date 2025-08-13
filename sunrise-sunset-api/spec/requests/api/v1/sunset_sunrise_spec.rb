@@ -11,11 +11,13 @@ RSpec.describe "Sunrise Sunset API", type: :request do
     end
 
     context "with valid parameters" do
+      let(:mock_location) { create(:location, :lisbon) }
+
       before do
         allow(SunriseSunsetService).to receive(:fetch_data).and_return([
-          create(:sunrise_sunset_data, date: Date.parse('2024-08-01')),
-          create(:sunrise_sunset_data, date: Date.parse('2024-08-02')),
-          create(:sunrise_sunset_data, date: Date.parse('2024-08-03'))
+          create(:sunrise_sunset_data, date: Date.parse('2024-08-01'), location: mock_location),
+          create(:sunrise_sunset_data, date: Date.parse('2024-08-02'), location: mock_location),
+          create(:sunrise_sunset_data, date: Date.parse('2024-08-03'), location: mock_location)
         ])
       end
 

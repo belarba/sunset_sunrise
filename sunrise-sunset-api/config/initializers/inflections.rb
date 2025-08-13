@@ -14,3 +14,8 @@
 # ActiveSupport::Inflector.inflections(:en) do |inflect|
 #   inflect.acronym "RESTful"
 # end
+
+ActiveSupport::Inflector.inflections(:en) do |inflect|
+  # Corrige o problema com SunriseSunsetData
+  inflect.irregular 'sunrise_sunset_data', 'sunrise_sunset_data'
+end

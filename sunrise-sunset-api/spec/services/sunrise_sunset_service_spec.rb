@@ -1,4 +1,3 @@
-# spec/services/sunrise_sunset_service_spec.rb
 require 'rails_helper'
 
 RSpec.describe SunriseSunsetService do
@@ -18,9 +17,12 @@ RSpec.describe SunriseSunsetService do
 
   describe '.fetch_data' do
     context 'with valid parameters' do
+      let(:mock_location) { create(:location, :lisbon) }
+
       before do
-        allow(GeocodingService).to receive(:get_coordinates)
-          .with(location).and_return(coordinates)
+        # Mock Location.find_or_create_by_search_term instead of GeocodingService
+        allow(Location).to receive(:find_or_create_by_search_term)
+          .with(location).and_return(mock_location)
 
         # Mock API responses
         mock_api_response = {
@@ -62,8 +64,7 @@ RSpec.describe SunriseSunsetService do
       it 'uses cached data when available' do
         # Create existing data
         create(:sunrise_sunset_data,
-          latitude: coordinates[:latitude],
-          longitude: coordinates[:longitude],
+          location: mock_location,
           date: Date.parse(start_date)
         )
 
@@ -117,9 +118,9 @@ RSpec.describe SunriseSunsetService do
       end
     end
 
-    context 'with geocoding errors' do
+    context 'with location errors' do
       it 'raises InvalidLocationError when location not found' do
-        allow(GeocodingService).to receive(:get_coordinates)
+        allow(Location).to receive(:find_or_create_by_search_term)
           .and_raise(GeocodingService::LocationNotFoundError, 'Location not found')
 
         expect {
@@ -128,7 +129,7 @@ RSpec.describe SunriseSunsetService do
       end
 
       it 'raises ApiError when geocoding service fails' do
-        allow(GeocodingService).to receive(:get_coordinates)
+        allow(Location).to receive(:find_or_create_by_search_term)
           .and_raise(GeocodingService::GeocodingError, 'Service unavailable')
 
         expect {
@@ -138,13 +139,12 @@ RSpec.describe SunriseSunsetService do
     end
 
     context 'with API errors' do
-      before do
-        allow(GeocodingService).to receive(:get_coordinates)
-          .with(location).and_return(coordinates)
-      end
+      let(:mock_location) { create(:location, :lisbon) }
 
-      # API error handling is tested through integration with real scenarios
-      # The error handling is covered by other tests in the suite
+      before do
+        allow(Location).to receive(:find_or_create_by_search_term)
+          .with(location).and_return(mock_location)
+      end
 
       it 'handles INVALID_REQUEST status from API' do
         allow(described_class).to receive(:get).and_return(
@@ -158,13 +158,13 @@ RSpec.describe SunriseSunsetService do
       end
 
       it 'handles polar regions correctly' do
-        polar_coordinates = coordinates.merge(latitude: 80.0) # Arctic
-        allow(GeocodingService).to receive(:get_coordinates)
-          .and_return(polar_coordinates)
+        polar_location = create(:location, :polar_region)
+        allow(Location).to receive(:find_or_create_by_search_term)
+          .and_return(polar_location)
 
         # Mock the service to create polar region data
-        allow_any_instance_of(described_class).to receive(:fetch_single_date) do |instance, lat, lng, location_name, date|
-          instance.send(:create_polar_region_data, lat, lng, location_name, date)
+        allow_any_instance_of(described_class).to receive(:fetch_single_date) do |instance, location, date|
+          instance.send(:create_polar_region_data, location, date)
         end
 
         result = described_class.fetch_data(location, start_date, end_date)

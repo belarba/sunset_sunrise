@@ -21,9 +21,9 @@ class Api::V1::SunriseSunsetController < ApplicationController
       data: @data.map do |record|
         {
           id: record.id,
-          location: record.location,
-          latitude: record.latitude.to_f,  # Convert to float
-          longitude: record.longitude.to_f, # Convert to float
+          location: record.location_name,
+          latitude: record.latitude.to_f,
+          longitude: record.longitude.to_f,
           date: record.date,
           sunrise: record.sunrise&.strftime('%H:%M:%S'),
           sunset: record.sunset&.strftime('%H:%M:%S'),
@@ -80,7 +80,7 @@ class Api::V1::SunriseSunsetController < ApplicationController
 
   def locations
     cache_expires_in = ENV.fetch('LOCATIONS_CACHE_EXPIRES_IN') { 3600 }.to_i
-    cache_key = "recent_locations_v2:#{Date.current}"
+    cache_key = "recent_locations_v3:#{Date.current}"
 
     @locations = begin
       Rails.cache.fetch(cache_key, expires_in: cache_expires_in.seconds) do
@@ -124,16 +124,17 @@ class Api::V1::SunriseSunsetController < ApplicationController
   private
 
   def get_recent_locations
-    # Clear any potential transaction issues
+    # Agora busca locations com base nos dados de sunrise_sunset_data mais recentes
     ActiveRecord::Base.clear_active_connections! if ActiveRecord::Base.connection.transaction_open?
 
-    SunriseSunsetData
-      .select(:location)
+    Location
+      .joins(:sunrise_sunset_data)
+      .select('locations.display_name')
       .distinct
-      .order('MAX(created_at) DESC')
-      .group(:location)
+      .order('MAX(sunrise_sunset_data.created_at) DESC')
+      .group('locations.id, locations.display_name')
       .limit(20)
-      .pluck(:location)
+      .pluck(:display_name)
   rescue => e
     Rails.logger.error "Database error in locations: #{e.message}"
     []
