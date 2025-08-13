@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::API
   include ActionController::Caching
+  include ActionController::MimeResponds
 
   before_action :set_default_format
   before_action :log_request_info

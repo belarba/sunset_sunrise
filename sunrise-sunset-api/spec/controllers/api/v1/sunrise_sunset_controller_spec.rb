@@ -48,9 +48,14 @@ RSpec.describe Api::V1::SunriseSunsetController, type: :controller do
       end
 
       it 'returns successful response' do
-        get :index, params: valid_params
-        expect(response).to have_http_status(:success)
-      end
+  get :index, params: valid_params
+
+  puts "Status: #{response.status}"
+  puts "Body: #{response.body}"
+  puts "Error: #{response.body}" if response.status == 500
+
+  expect(response).to have_http_status(:success)
+end
 
       it 'returns correct JSON structure with JBuilder' do
         get :index, params: valid_params

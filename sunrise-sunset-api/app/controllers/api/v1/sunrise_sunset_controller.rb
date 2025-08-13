@@ -16,42 +16,14 @@ class Api::V1::SunriseSunsetController < ApplicationController
       cached_records: @data.count { |record| record.created_at < 1.minute.ago }
     }
 
-    # Renderiza automaticamente app/views/api/v1/sunrise_sunset/index.json.jbuilder
+    respond_to do |format|
+      format.json
+    end
 
-  rescue SunriseSunsetService::InvalidLocationError => e
-    @error = {
-      status: 'error',
-      error: 'invalid_location',
-      message: e.message
-    }
-    render 'error', status: :unprocessable_content
-
-  rescue SunriseSunsetService::DateRangeError => e
-    @error = {
-      status: 'error',
-      error: 'invalid_date_range',
-      message: e.message
-    }
-    render 'error', status: :unprocessable_content
-
-  rescue SunriseSunsetService::ApiError => e
-    @error = {
-      status: 'error',
-      error: 'api_error',
-      message: e.message
-    }
-    render 'error', status: :service_unavailable
-
-  rescue StandardError => e
-    Rails.logger.error "Unexpected error in SunriseSunsetController: #{e.message}"
-    Rails.logger.error e.backtrace.join("\n")
-
-    @error = {
-      status: 'error',
-      error: 'internal_error',
-      message: 'An unexpected error occurred'
-    }
-    render 'error', status: :internal_server_error
+  rescue => e
+    puts "ERROR in index: #{e.class}: #{e.message}"
+    puts e.backtrace.first(5)
+    raise e  # Re-raise para ver o erro
   end
 
   def locations
@@ -68,7 +40,10 @@ class Api::V1::SunriseSunsetController < ApplicationController
     end
 
     @cached_at = Time.current
-    # Renderiza app/views/api/v1/sunrise_sunset/locations.json.jbuilder
+
+    respond_to do |format|
+      format.json
+    end
   end
 
   def health
@@ -77,7 +52,10 @@ class Api::V1::SunriseSunsetController < ApplicationController
       timestamp: Time.current,
       version: Rails.application.config.respond_to?(:app_version) ? Rails.application.config.app_version : '1.0.0'
     }
-    # Renderiza app/views/api/v1/sunrise_sunset/health.json.jbuilder
+
+    respond_to do |format|
+      format.json
+    end
   end
 
   private
