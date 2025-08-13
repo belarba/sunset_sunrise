@@ -5,6 +5,10 @@ interface ButtonProps {
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
   loading?: boolean;
+  className?: string;
+  children?: React.ReactNode;
+  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  type?: 'button' | 'submit' | 'reset';
 }
 
 const buttonVariants = {
@@ -78,20 +82,31 @@ export const Button = styled.button<ButtonProps>`
   overflow: hidden;
   white-space: nowrap;
 
+  /* Aplicar variante */
   ${({ variant = 'primary' }) => buttonVariants[variant]}
+  
+  /* Aplicar tamanho */
   ${({ size = 'md' }) => buttonSizes[size]}
 
-  &:disabled {
+  /* Estado disabled */
+  ${({ disabled, loading }) => (disabled || loading) && css`
     opacity: 0.5;
     cursor: not-allowed;
     transform: none !important;
-  }
+    
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  `}
 
+  /* Estado de foco */
   &:focus {
     outline: none;
     box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
   }
 
+  /* Estado loading */
   ${({ loading }) =>
     loading &&
     css`
@@ -106,6 +121,11 @@ export const Button = styled.button<ButtonProps>`
         border-top: 2px solid currentColor;
         border-radius: 50%;
         animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
       }
     `}
 `;

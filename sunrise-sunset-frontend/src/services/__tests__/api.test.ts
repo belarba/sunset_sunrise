@@ -1,35 +1,55 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import axios from 'axios';
-import { sunriseSunsetService } from '../api';
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import type { ApiResponse } from '../../types';
 
-// Mock axios
-vi.mock('axios');
-const mockedAxios = vi.mocked(axios);
-
-// Mock axios.create to return mocked axios instance
+// Mock completo do axios antes de importar qualquer coisa
 const mockAxiosInstance = {
   get: vi.fn(),
+  post: vi.fn(),
+  put: vi.fn(),
+  patch: vi.fn(),
+  delete: vi.fn(),
+  head: vi.fn(),
+  options: vi.fn(),
+  request: vi.fn(),
+  getUri: vi.fn(),
+  defaults: {},
   interceptors: {
     request: {
       use: vi.fn(),
+      eject: vi.fn(),
+      clear: vi.fn(),
     },
     response: {
       use: vi.fn(),
+      eject: vi.fn(),
+      clear: vi.fn(),
     },
   },
 };
 
-mockedAxios.create = vi.fn(() => mockAxiosInstance);
-mockedAxios.isAxiosError = vi.fn();
+const mockAxios = {
+  create: vi.fn(() => mockAxiosInstance),
+  isAxiosError: vi.fn(),
+  get: vi.fn(),
+  post: vi.fn(),
+  put: vi.fn(),
+  patch: vi.fn(),
+  delete: vi.fn(),
+  head: vi.fn(),
+  options: vi.fn(),
+  request: vi.fn(),
+};
+
+vi.mock('axios', () => ({
+  default: mockAxios,
+}));
+
+// Agora importar o serviço após o mock
+const { sunriseSunsetService } = await import('../api');
 
 describe('sunriseSunsetService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   describe('getSunriseSunsetData', () => {
@@ -101,10 +121,13 @@ describe('sunriseSunsetService', () => {
         response: { data: mockErrorResponse },
         request: {},
         message: 'Request failed with status code 422',
+        name: 'AxiosError',
+        config: {},
+        isAxiosError: true,
       };
 
       mockAxiosInstance.get.mockRejectedValue(axiosError);
-      mockedAxios.isAxiosError.mockReturnValue(true);
+      mockAxios.isAxiosError.mockReturnValue(true);
 
       const result = await sunriseSunsetService.getSunriseSunsetData(
         'InvalidLocation',
@@ -121,10 +144,13 @@ describe('sunriseSunsetService', () => {
       const axiosError = {
         request: {},
         message: 'Network Error',
+        name: 'AxiosError',
+        config: {},
+        isAxiosError: true,
       };
 
       mockAxiosInstance.get.mockRejectedValue(axiosError);
-      mockedAxios.isAxiosError.mockReturnValue(true);
+      mockAxios.isAxiosError.mockReturnValue(true);
 
       await expect(
         sunriseSunsetService.getSunriseSunsetData('Lisbon', '2024-08-01', '2024-08-01')
@@ -135,7 +161,7 @@ describe('sunriseSunsetService', () => {
       const networkError = new Error('Network failed');
 
       mockAxiosInstance.get.mockRejectedValue(networkError);
-      mockedAxios.isAxiosError.mockReturnValue(false);
+      mockAxios.isAxiosError.mockReturnValue(false);
 
       await expect(
         sunriseSunsetService.getSunriseSunsetData('Lisbon', '2024-08-01', '2024-08-01')
@@ -281,22 +307,20 @@ describe('sunriseSunsetService', () => {
     });
   });
 
-  describe('API interceptors', () => {
-    it('should setup request and response interceptors', () => {
-      expect(mockAxiosInstance.interceptors.request.use).toHaveBeenCalled();
-      expect(mockAxiosInstance.interceptors.response.use).toHaveBeenCalled();
-    });
-  });
-
   describe('API configuration', () => {
     it('should create axios instance with correct configuration', () => {
-      expect(mockedAxios.create).toHaveBeenCalledWith({
+      expect(mockAxios.create).toHaveBeenCalledWith({
         baseURL: 'http://localhost:3000/api/v1',
         timeout: 30000,
         headers: {
           'Content-Type': 'application/json',
         },
       });
+    });
+
+    it('should setup request and response interceptors', () => {
+      expect(mockAxiosInstance.interceptors.request.use).toHaveBeenCalled();
+      expect(mockAxiosInstance.interceptors.response.use).toHaveBeenCalled();
     });
   });
 });
