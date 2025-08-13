@@ -12,4 +12,11 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
   },
+  // @ts-expect-error - Vitest adiciona propriedades de teste ao Vite config
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.ts',
+    css: true,
+  },
 })
