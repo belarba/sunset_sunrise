@@ -1,7 +1,4 @@
 class ApplicationController < ActionController::API
-  include ActionController::Caching
-  include ActionController::MimeResponds
-
   before_action :set_default_format
   before_action :log_request_info
 
@@ -11,7 +8,7 @@ class ApplicationController < ActionController::API
   private
 
   def set_default_format
-    request.format = :json
+    request.format = :json unless params[:format]
   end
 
   def log_request_info
@@ -26,7 +23,8 @@ class ApplicationController < ActionController::API
     render json: {
       status: 'error',
       error: 'missing_parameter',
-      message: exception.message
+      message: exception.message,
+      timestamp: Time.current.iso8601
     }, status: :bad_request
   end
 
@@ -37,7 +35,8 @@ class ApplicationController < ActionController::API
     render json: {
       status: 'error',
       error: 'internal_server_error',
-      message: 'An unexpected error occurred'
+      message: 'An unexpected error occurred',
+      timestamp: Time.current.iso8601
     }, status: :internal_server_error
   end
 end
