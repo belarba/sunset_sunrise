@@ -1,34 +1,43 @@
 import axios from 'axios';
+import { env } from '../config/env';
 import type { ApiResponse } from '../types';
 
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api/v1',
-  timeout: 30000,
+  baseURL: env.apiBaseUrl,
+  timeout: env.apiTimeout,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor for logging
+// Request interceptor para logging (apenas em desenvolvimento)
 api.interceptors.request.use(
   (config) => {
-    console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    if (env.enableApiLogging) {
+      console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    }
     return config;
   },
   (error) => {
-    console.error('❌ Request Error:', error);
+    if (env.enableApiLogging) {
+      console.error('❌ Request Error:', error);
+    }
     return Promise.reject(error);
   }
 );
 
-// Response interceptor for logging
+// Response interceptor para logging
 api.interceptors.response.use(
   (response) => {
-    console.log(`✅ API Response: ${response.status} ${response.config.url}`);
+    if (env.enableApiLogging) {
+      console.log(`✅ API Response: ${response.status} ${response.config.url}`);
+    }
     return response;
   },
   (error) => {
-    console.error('❌ Response Error:', error);
+    if (env.enableApiLogging) {
+      console.error('❌ Response Error:', error);
+    }
     return Promise.reject(error);
   }
 );
@@ -51,14 +60,13 @@ export const sunriseSunsetService = {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response) {
-          // Server responded with error status
           return error.response.data;
         } else if (error.request) {
-          // Request was made but no response received
-          throw new Error('No response from server. Please check if the backend is running on port 3000.');
+          throw new Error(
+            `No response from server. Please check if the backend is running on ${env.apiBaseUrl}`
+          );
         }
       }
-      // Something else happened
       throw new Error('Network error occurred');
     }
   },
