@@ -163,12 +163,13 @@ export const SearchForm = ({ onSubmit, loading }: Props) => {
         <FormContainer onSubmit={handleSubmit(onSubmit)}>
           {/* Location Input */}
           <InputGroup>
-            <Label>
+            <Label htmlFor="location">
               <MapPin size={16} />
               Location
             </Label>
             <Input
               {...register('location')}
+              id="location"
               type="text"
               placeholder="Enter city name (e.g., Lisbon, Berlin, New York)"
               hasError={!!errors.location}
@@ -204,12 +205,13 @@ export const SearchForm = ({ onSubmit, loading }: Props) => {
           {/* Date Inputs */}
           <FormRow>
             <InputGroup>
-              <Label>
+              <Label htmlFor="start_date">
                 <Calendar size={16} />
                 Start Date
               </Label>
               <Input
                 {...register('start_date')}
+                id="start_date"
                 type="date"
                 hasError={!!errors.start_date}
                 max={format(new Date(), 'yyyy-MM-dd')}
@@ -221,15 +223,22 @@ export const SearchForm = ({ onSubmit, loading }: Props) => {
             </InputGroup>
 
             <InputGroup>
-              <Label>
+              <Label htmlFor="end_date">
                 <Calendar size={16} />
                 End Date
               </Label>
               <Input
                 {...register('end_date')}
+                id="end_date"
                 type="date"
                 hasError={!!errors.end_date}
-                min={watchedStartDate ? format(addDays(new Date(watchedStartDate), 1), 'yyyy-MM-dd') : undefined}
+                min={watchedStartDate ? (() => {
+                  try {
+                    return format(addDays(new Date(watchedStartDate), 1), 'yyyy-MM-dd');
+                  } catch {
+                    return undefined;
+                  }
+                })() : undefined}
                 max={format(addYears(new Date(), 1), 'yyyy-MM-dd')} // Permitir até 1 ano no futuro
               />
               {errors.end_date && (

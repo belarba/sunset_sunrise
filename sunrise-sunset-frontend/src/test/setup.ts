@@ -5,14 +5,12 @@ import React from 'react'
 // Types para evitar warnings de any
 interface ComponentProps {
   children?: React.ReactNode
+  disabled?: boolean
+  loading?: boolean
+  type?: 'button' | 'submit' | 'reset'
+  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void
   [key: string]: unknown
 }
-
-interface AttrsFunction {
-  (props: ComponentProps): Record<string, unknown>
-}
-
-type AttrsParam = Record<string, unknown> | AttrsFunction
 
 // Mock global do console para evitar logs durante testes
 global.console = {
@@ -26,7 +24,7 @@ global.console = {
 // Mock simplificado do styled-components
 vi.mock('styled-components', () => {
   const createStyledComponent = (elementType: string) => {
-    const styledFunction = () => {
+    return () => {
       const Component = React.forwardRef<HTMLElement, ComponentProps>(
         ({ children, ...props }, ref) => {
           return React.createElement(elementType, { ...props, ref }, children);
@@ -35,11 +33,9 @@ vi.mock('styled-components', () => {
       Component.displayName = `Styled(${elementType})`;
       return Component;
     };
-    
-    return styledFunction;
   };
 
-  // Função principal do styled que suporta styled(Component) e styled.div
+  // Função principal do styled
   const styledMain = (component: string | React.ComponentType) => {
     return () => {
       const Component = React.forwardRef<HTMLElement, ComponentProps>(
@@ -47,7 +43,7 @@ vi.mock('styled-components', () => {
           if (typeof component === 'string') {
             return React.createElement(component, { ...props, ref }, children);
           }
-          // Para componentes React, apenas renderiza como div
+          // Para componentes React, renderizar como div por padrão
           return React.createElement('div', { ...props, ref }, children);
         }
       );
@@ -56,13 +52,13 @@ vi.mock('styled-components', () => {
     };
   };
 
-  // Proxy para capturar todas as propriedades HTML (button, div, input, etc.)
+  // Proxy para capturar todas as propriedades HTML
   const styled = new Proxy(styledMain, {
     get(target, prop) {
       if (typeof prop === 'string') {
         return createStyledComponent(prop);
       }
-      return target[prop];
+      return ((target as unknown) as Record<string | symbol, unknown>)[prop];
     }
   });
 
