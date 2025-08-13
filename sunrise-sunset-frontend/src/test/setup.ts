@@ -2,6 +2,18 @@ import '@testing-library/jest-dom'
 import { vi } from 'vitest'
 import React from 'react'
 
+// Types para evitar warnings de any
+interface ComponentProps {
+  children?: React.ReactNode
+  [key: string]: unknown
+}
+
+interface AttrsFunction {
+  (props: ComponentProps): Record<string, unknown>
+}
+
+type AttrsParam = Record<string, unknown> | AttrsFunction
+
 // Mock global do console para evitar logs durante testes
 global.console = {
   ...console,
@@ -11,54 +23,46 @@ global.console = {
   info: vi.fn(),
 }
 
-// Mock do styled-components mais completo
+// Mock simplificado do styled-components
 vi.mock('styled-components', () => {
-  // Função para criar componente estilizado
   const createStyledComponent = (elementType: string) => {
-    // Função principal que aceita template literals
-    const styledFunction = (strings: TemplateStringsArray, ...values: unknown[]) => {
-      const Component = React.forwardRef<any, any>(({ children, ...props }, ref) => {
-        return React.createElement(elementType, { ...props, ref }, children);
-      });
-      Component.displayName = Styled(${elementType});
-      
-      // Adicionar método attrs
-      Component.attrs = (attrsFunction: any) => {
-        const AttrsComponent = React.forwardRef<any, any>(({ children, ...props }, ref) => {
-          const computedAttrs = typeof attrsFunction === 'function' 
-            ? attrsFunction(props) 
-            : attrsFunction;
-          return React.createElement(elementType, { ...props, ...computedAttrs, ref }, children);
-        });
-        AttrsComponent.displayName = Styled(${elementType}).attrs;
-        return AttrsComponent;
-      };
-      
+    const styledFunction = () => {
+      const Component = React.forwardRef<HTMLElement, ComponentProps>(
+        ({ children, ...props }, ref) => {
+          return React.createElement(elementType, { ...props, ref }, children);
+        }
+      );
+      Component.displayName = `Styled(${elementType})`;
       return Component;
-    };
-    
-    // Adicionar método attrs na função principal também
-    styledFunction.attrs = (attrsFunction: any) => {
-      const AttrsComponent = React.forwardRef<any, any>(({ children, ...props }, ref) => {
-        const computedAttrs = typeof attrsFunction === 'function' 
-          ? attrsFunction(props) 
-          : attrsFunction;
-        return React.createElement(elementType, { ...props, ...computedAttrs, ref }, children);
-      });
-      AttrsComponent.displayName = Styled(${elementType}).attrs;
-      return AttrsComponent;
     };
     
     return styledFunction;
   };
 
-  // Proxy para capturar todas as propriedades (button, div, input, etc.)
-  const styled = new Proxy({}, {
+  // Função principal do styled que suporta styled(Component) e styled.div
+  const styledMain = (component: string | React.ComponentType) => {
+    return () => {
+      const Component = React.forwardRef<HTMLElement, ComponentProps>(
+        ({ children, ...props }, ref) => {
+          if (typeof component === 'string') {
+            return React.createElement(component, { ...props, ref }, children);
+          }
+          // Para componentes React, apenas renderiza como div
+          return React.createElement('div', { ...props, ref }, children);
+        }
+      );
+      Component.displayName = `Styled(${typeof component === 'string' ? component : 'Component'})`;
+      return Component;
+    };
+  };
+
+  // Proxy para capturar todas as propriedades HTML (button, div, input, etc.)
+  const styled = new Proxy(styledMain, {
     get(target, prop) {
       if (typeof prop === 'string') {
         return createStyledComponent(prop);
       }
-      return undefined;
+      return target[prop];
     }
   });
 
@@ -96,11 +100,12 @@ vi.mock('chart.js', () => ({
 
 // Mock do react-chartjs-2
 vi.mock('react-chartjs-2', () => ({
-  Line: ({ data, options }: any) => React.createElement('canvas', { 
-    'data-testid': 'line-chart',
-    'data-chart-data': JSON.stringify(data),
-    'data-chart-options': JSON.stringify(options)
-  }),
+  Line: ({ data, options }: { data: unknown; options: unknown }) => 
+    React.createElement('canvas', { 
+      'data-testid': 'line-chart',
+      'data-chart-data': JSON.stringify(data),
+      'data-chart-options': JSON.stringify(options)
+    }),
 }))
 
 // Configurações globais para testes
@@ -123,4 +128,4 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
-}));
+}))
