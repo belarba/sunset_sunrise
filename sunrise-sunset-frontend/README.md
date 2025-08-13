@@ -111,7 +111,16 @@ yarn install
 ```
 
 3. **Environment Setup**
-The application expects the backend API to be running on `http://localhost:3000`. No additional environment configuration is required for development.
+```bash
+# Copy environment template
+cp .env.example .env.development
+
+# Edit environment variables
+# .env.development
+VITE_API_BASE_URL=http://localhost:3000/api/v1
+VITE_API_TIMEOUT=30000
+VITE_ENABLE_API_LOGGING=true
+```
 
 4. **Start development server**
 ```bash
@@ -121,6 +130,52 @@ yarn dev
 ```
 
 The application will be available at `http://localhost:5173`
+
+## ⚙️ Environment Configuration
+
+### Environment Variables
+
+The application uses Vite's environment variable system with the `VITE_` prefix:
+
+```bash
+# Development (.env.development)
+VITE_API_BASE_URL=http://localhost:3000/api/v1
+VITE_API_TIMEOUT=30000
+VITE_ENABLE_API_LOGGING=true
+
+# Production (.env.production)
+VITE_API_BASE_URL=https://your-production-api.com/api/v1
+VITE_API_TIMEOUT=15000
+VITE_ENABLE_API_LOGGING=false
+```
+
+### Configuration Options
+
+- **`VITE_API_BASE_URL`** - Backend API base URL (required)
+- **`VITE_API_TIMEOUT`** - Request timeout in milliseconds (default: 30000)
+- **`VITE_ENABLE_API_LOGGING`** - Enable API request/response logging (default: true in dev)
+
+### Environment Setup
+
+1. **Copy the environment template**
+   ```bash
+   cp .env.example .env.development
+   ```
+
+2. **Configure for your environment**
+   ```bash
+   # For local development with Rails API
+   VITE_API_BASE_URL=http://localhost:3000/api/v1
+   
+   # For different ports or hosts
+   VITE_API_BASE_URL=http://localhost:4000/api/v1
+   
+   # For production deployment
+   VITE_API_BASE_URL=https://api.yourdomain.com/api/v1
+   ```
+
+3. **Validation**
+   The application validates required environment variables at startup and will throw an error if `VITE_API_BASE_URL` is missing.
 
 ## 🧪 Testing
 
@@ -170,13 +225,14 @@ src/
 
 ## 🏗️ Architecture & Design
 
-### Component Structure
+### Project Structure
 ```
 src/
 ├── components/
 │   ├── charts/         # Data visualization components
 │   ├── forms/          # Form components
 │   └── ui/             # Reusable UI components
+├── config/             # Environment configuration
 ├── services/           # API integration layer
 ├── styles/             # Global styles and theme
 ├── types/              # TypeScript type definitions
@@ -418,10 +474,6 @@ vi.mock('../services/api', () => ({
 - [ ] Responsive design verified
 - [ ] Accessibility tested
 
-## 📄 License
-
-This project is part of the Jumpseller Technical Challenge.
-
 ---
 
-Built with ❤️ using React, TypeScript, and modern web technolog
+Built with ❤️ using React, TypeScript, and modern web technologies.
