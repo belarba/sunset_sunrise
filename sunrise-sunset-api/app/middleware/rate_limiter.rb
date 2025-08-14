@@ -21,10 +21,13 @@ class RateLimiter
   end
 
   def rate_limited?(ip)
+    # Use simple in-memory cache for rate limiting
     key = "rate_limit:#{ip}"
     count = Rails.cache.read(key) || 0
 
-    if count >= 100 # 100 requests per hour
+    limit = ENV.fetch('RATE_LIMIT_REQUESTS_PER_HOUR', 100).to_i
+
+    if count >= limit
       true
     else
       Rails.cache.write(key, count + 1, expires_in: 1.hour)

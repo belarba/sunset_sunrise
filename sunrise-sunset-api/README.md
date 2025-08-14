@@ -19,7 +19,7 @@ A comprehensive Ruby on Rails API for retrieving and storing historical sunrise,
 - **Ruby 3.4.2** - Latest stable Ruby version
 - **Rails 8.0.2** - Modern Rails API-only application
 - **PostgreSQL** - Primary database for data persistence
-- **Redis** - Caching layer for performance optimization
+- **Memory Cache** - In-memory caching for performance optimization
 
 ### External API Integrations
 - **🌍 Open-Meteo Geocoding API** (`https://geocoding-api.open-meteo.com/v1`)
@@ -36,7 +36,6 @@ A comprehensive Ruby on Rails API for retrieving and storing historical sunrise,
 
 ### Key Gems & Libraries
 - **HTTParty** - HTTP client for external API communications
-- **Redis** - Caching and session storage
 - **Rack-CORS** - Cross-origin resource sharing for frontend integration
 - **JBuilder** - Clean JSON API responses
 - **Dotenv** - Environment variable management
@@ -129,7 +128,6 @@ Returns API health status and system information.
 ### Prerequisites
 - Ruby 3.4.2
 - PostgreSQL 12+
-- Redis 6+
 - Git
 
 ### Local Development Setup
@@ -158,8 +156,6 @@ DATABASE_PASSWORD=your_password_here
 DATABASE_NAME_DEVELOPMENT=sunrise_sunset_development
 DATABASE_NAME_TEST=sunrise_sunset_test
 DATABASE_PORT=5432
-
-REDIS_URL=redis://localhost:6379/1
 
 # API Configuration
 SUNRISE_SUNSET_API_URL=https://api.sunrisesunset.io
@@ -227,7 +223,6 @@ bundle exec rubocop
 
 ### Caching Strategy
 1. **Database First** - Check for existing data before API calls
-2. **Geocoding Cache** - Redis cache for location coordinates (7 days)
 3. **Location Cache** - Recent locations list (1 hour)
 4. **Configurable TTL** - Environment-based cache expiration
 

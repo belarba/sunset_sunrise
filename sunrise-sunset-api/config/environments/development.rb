@@ -21,9 +21,9 @@ Rails.application.configure do
     config.action_controller.perform_caching = true
     config.public_file_server.headers = { "cache-control" => "public, max-age=#{2.days.to_i}" }
 
-    # Use Redis for caching in development when enabled
-    config.cache_store = :redis_cache_store, {
-      url: ENV['REDIS_URL'] || 'redis://localhost:6379/1',
+    # Use memory cache for development
+    config.cache_store = :memory_store, {
+      size: 64.megabytes,
       expires_in: 1.week
     }
   else
