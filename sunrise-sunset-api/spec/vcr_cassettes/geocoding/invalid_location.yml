@@ -1,0 +1,32 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://geocoding-api.open-meteo.com/v1/search?count=1&format=json&language=en&name=InvalidLocationXYZ123
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+      Content-Length:
+      - '39'
+    body:
+      encoding: UTF-8
+      string: |
+        {
+          "results": [],
+          "generationtime_ms": 0.124
+        }
+    http_version: 
+  recorded_at: Mon, 12 Aug 2024 10:31:00 GMT

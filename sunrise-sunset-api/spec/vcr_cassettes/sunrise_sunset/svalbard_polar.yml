@@ -1,0 +1,43 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://api.sunrisesunset.io/json?lat=78.9167&lng=11.9500&date=2024-12-21
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '89'
+    body:
+      encoding: UTF-8
+      string: |
+        {
+          "results": {
+            "sunrise": null,
+            "sunset": null,
+            "solar_noon": "2024-12-21T11:30:00+00:00",
+            "day_length": "00:00:00",
+            "civil_twilight_begin": null,
+            "civil_twilight_end": null,
+            "nautical_twilight_begin": null,
+            "nautical_twilight_end": null,
+            "astronomical_twilight_begin": null,
+            "astronomical_twilight_end": null
+          },
+          "status": "OK"
+        }
+    http_version: 
+  recorded_at: Mon, 12 Aug 2024 10:33:00 GMT

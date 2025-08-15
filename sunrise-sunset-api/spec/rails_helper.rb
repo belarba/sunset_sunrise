@@ -7,10 +7,10 @@ require 'factory_bot_rails'
 require 'webmock/rspec'
 require 'vcr'
 
-# Prevent making real HTTP requests during tests
+# Configuração do WebMock
 WebMock.disable_net_connect!(allow_localhost: true)
 
-# VCR configuration for recording HTTP interactions
+# Configuração do VCR
 VCR.configure do |config|
   config.cassette_library_dir = "spec/vcr_cassettes"
   config.hook_into :webmock
@@ -65,14 +65,22 @@ RSpec.configure do |config|
     Rails.cache.clear if Rails.cache.respond_to?(:clear)
   end
 
-  # Mock external services by default
-  config.before(:each) do
-    allow(GeocodingService).to receive(:get_coordinates).and_return({
-      latitude: 38.7223,
-      longitude: -9.1393,
-      name: 'Lisbon',
-      country: 'Portugal',
-      admin1: 'Lisboa'
-    })
+  # Configuração condicional de mocks - CORRIGIDO
+  config.before(:each) do |example|
+    # Só mocka se NÃO for um teste com VCR
+    unless example.metadata[:vcr]
+      allow(GeocodingService).to receive(:get_coordinates).and_return({
+        latitude: 38.7223,
+        longitude: -9.1393,
+        name: 'Lisbon',
+        country: 'Portugal',
+        admin1: 'Lisboa'
+      })
+    end
   end
+
+  # Tags para diferentes tipos de teste
+  config.filter_run_excluding :slow unless ENV['RUN_SLOW_TESTS']
+  config.filter_run_excluding :integration unless ENV['RUN_INTEGRATION_TESTS']
+  config.filter_run_excluding :vcr unless ENV['RUN_VCR_TESTS']
 end

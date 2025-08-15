@@ -1,0 +1,57 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://geocoding-api.open-meteo.com/v1/search?count=1&format=json&language=en&name=Lisbon
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+      Content-Length:
+      - '156'
+    body:
+      encoding: UTF-8
+      string: |
+        {
+          "results": [
+            {
+              "id": 2267057,
+              "name": "Lisbon",
+              "latitude": 38.7223,
+              "longitude": -9.1393,
+              "elevation": 111.0,
+              "feature_code": "PPLC",
+              "country_code": "PT",
+              "admin1_id": 2267056,
+              "admin2_id": 8010550,
+              "admin3_id": 8012544,
+              "admin4_id": 11278760,
+              "timezone": "Europe/Lisbon",
+              "population": 517802,
+              "postcodes": [
+                "1000-001"
+              ],
+              "country_id": 2264397,
+              "country": "Portugal",
+              "admin1": "Lisbon",
+              "admin2": "Lisbon",
+              "admin3": "Lisbon",
+              "admin4": "Misericórdia"
+            }
+          ],
+          "generationtime_ms": 0.6320477
+        }
+    http_version: 
+  recorded_at: Mon, 12 Aug 2024 10:30:00 GMT

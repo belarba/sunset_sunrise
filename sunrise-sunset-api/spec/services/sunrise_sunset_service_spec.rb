@@ -5,22 +5,12 @@ RSpec.describe SunriseSunsetService do
   let(:location) { 'Lisbon' }
   let(:start_date) { '2024-08-01' }
   let(:end_date) { '2024-08-03' }
-  let(:coordinates) do
-    {
-      latitude: 38.7223,
-      longitude: -9.1393,
-      name: 'Lisbon',
-      country: 'Portugal',
-      admin1: 'Lisboa'
-    }
-  end
 
   describe '.fetch_data' do
     context 'with valid parameters' do
       let(:mock_location) { create(:location, :lisbon) }
 
       before do
-        # Mock Location.find_or_create_by_search_term instead of GeocodingService
         allow(Location).to receive(:find_or_create_by_search_term)
           .with(location).and_return(mock_location)
 
@@ -32,12 +22,6 @@ RSpec.describe SunriseSunsetService do
             'sunset' => '2024-08-01T19:45:00+00:00',
             'solar_noon' => '2024-08-01T12:37:30+00:00',
             'day_length' => '14:15:00',
-            'civil_twilight_begin' => '2024-08-01T05:00:00+00:00',
-            'civil_twilight_end' => '2024-08-01T20:15:00+00:00',
-            'nautical_twilight_begin' => '2024-08-01T04:30:00+00:00',
-            'nautical_twilight_end' => '2024-08-01T20:45:00+00:00',
-            'astronomical_twilight_begin' => '2024-08-01T04:00:00+00:00',
-            'astronomical_twilight_end' => '2024-08-01T21:15:00+00:00',
             'utc_offset' => 0
           }
         }
@@ -51,7 +35,7 @@ RSpec.describe SunriseSunsetService do
         result = described_class.fetch_data(location, start_date, end_date)
 
         expect(result).to be_an(Array)
-        expect(result.size).to eq(3) # 3 days
+        expect(result.size).to eq(3)
         expect(result.first).to be_a(SunriseSunsetData)
       end
 
@@ -199,7 +183,7 @@ RSpec.describe SunriseSunsetService do
       it 'parses duration strings correctly' do
         duration = '14:15:30'
         result = service.send(:parse_duration, duration)
-        expect(result).to eq(51330) # 14*3600 + 15*60 + 30
+        expect(result).to eq(51330)
       end
 
       it 'returns nil for invalid duration' do
@@ -229,7 +213,7 @@ RSpec.describe SunriseSunsetService do
 
         expect(begin_time).to be_a(Time)
         expect(end_time).to be_a(Time)
-        expect(begin_time).to be < end_time  # Golden hour start should be before end
+        expect(begin_time).to be < end_time
       end
 
       it 'returns nil values when sunrise/sunset are missing' do

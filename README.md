@@ -16,7 +16,6 @@ The application provides accurate solar data for any location globally, with int
 - **Ruby 3.4.2** (for backend)
 - **Node.js 18+** (for frontend)
 - **PostgreSQL 12+**
-- **Redis 6+**
 
 ### 1. Backend Setup
 ```bash
@@ -47,7 +46,6 @@ npm run dev  # Runs on port 5173
 ### Backend (Rails API)
 - **Modern Rails 8.0** with API-only configuration
 - **PostgreSQL** for reliable data persistence
-- **Redis** for high-performance caching
 - **Smart Geocoding** via Open-Meteo API
 - **Solar Data** from Sunrise-Sunset.io API
 - **Comprehensive Testing** with RSpec
