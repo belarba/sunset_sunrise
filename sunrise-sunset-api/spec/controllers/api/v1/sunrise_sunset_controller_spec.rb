@@ -248,7 +248,7 @@ RSpec.describe Api::V1::SunriseSunsetController, type: :controller do
     it 'returns recent locations with JBuilder structure' do
       # Mock the get_recent_locations method directly since we know the SQL works
       allow_any_instance_of(Api::V1::SunriseSunsetController).to receive(:get_recent_locations)
-        .and_return(['Lisbon, Portugal', 'Berlin, Germany'])
+        .and_return([ 'Lisbon, Portugal', 'Berlin, Germany' ])
 
       get :locations, format: :json
       expect(response).to have_http_status(:success)

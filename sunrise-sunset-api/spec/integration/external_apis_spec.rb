@@ -4,7 +4,6 @@ RSpec.describe 'External APIs Integration', type: :integration do
   describe 'Complete flow with real APIs', :vcr do
     it 'successfully geocodes location and fetches sunrise data',
        vcr: { cassette_name: 'integration/complete_flow_lisbon' } do
-
       # Esta é uma chamada completa sem mocks
       VCR.use_cassette('integration/complete_flow_lisbon') do
         result = SunriseSunsetService.fetch_data('Lisbon', '2024-08-01', '2024-08-01')

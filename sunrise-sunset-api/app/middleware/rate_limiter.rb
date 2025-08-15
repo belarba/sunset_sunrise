@@ -7,8 +7,8 @@ class RateLimiter
     request = Rack::Request.new(env)
 
     if api_request?(request.path) && rate_limited?(request.ip)
-      [429, { 'Content-Type' => 'application/json' },
-       [{ status: 'error', message: 'Rate limit exceeded' }.to_json]]
+      [ 429, { "Content-Type" => "application/json" },
+       [ { status: "error", message: "Rate limit exceeded" }.to_json ] ]
     else
       @app.call(env)
     end
@@ -17,7 +17,7 @@ class RateLimiter
   private
 
   def api_request?(path)
-    path.start_with?('/api/')
+    path.start_with?("/api/")
   end
 
   def rate_limited?(ip)
@@ -25,7 +25,7 @@ class RateLimiter
     key = "rate_limit:#{ip}"
     count = Rails.cache.read(key) || 0
 
-    limit = ENV.fetch('RATE_LIMIT_REQUESTS_PER_HOUR', 100).to_i
+    limit = ENV.fetch("RATE_LIMIT_REQUESTS_PER_HOUR", 100).to_i
 
     if count >= limit
       true

@@ -21,8 +21,8 @@ class ApplicationController < ActionController::API
 
   def handle_parameter_missing(exception)
     render json: {
-      status: 'error',
-      error: 'missing_parameter',
+      status: "error",
+      error: "missing_parameter",
       message: exception.message,
       timestamp: Time.current.iso8601
     }, status: :bad_request
@@ -33,9 +33,9 @@ class ApplicationController < ActionController::API
     Rails.logger.error exception.backtrace.join("\n")
 
     render json: {
-      status: 'error',
-      error: 'internal_server_error',
-      message: 'An unexpected error occurred',
+      status: "error",
+      error: "internal_server_error",
+      message: "An unexpected error occurred",
       timestamp: Time.current.iso8601
     }, status: :internal_server_error
   end

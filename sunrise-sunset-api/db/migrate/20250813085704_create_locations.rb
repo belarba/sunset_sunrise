@@ -15,7 +15,7 @@ class CreateLocations < ActiveRecord::Migration[8.0]
 
     # Índices para performance
     add_index :locations, :search_name, unique: true
-    add_index :locations, [:latitude, :longitude], unique: true
+    add_index :locations, [ :latitude, :longitude ], unique: true
     add_index :locations, :name
   end
 end

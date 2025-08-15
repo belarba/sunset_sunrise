@@ -17,7 +17,7 @@ class CreateSunriseSunsetData < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :sunrise_sunset_data, [:latitude, :longitude, :date],
+    add_index :sunrise_sunset_data, [ :latitude, :longitude, :date ],
               unique: true,
               name: 'index_sunrise_sunset_data_on_location_and_date'
     add_index :sunrise_sunset_data, :location

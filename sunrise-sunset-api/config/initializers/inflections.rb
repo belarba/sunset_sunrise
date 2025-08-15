@@ -17,5 +17,5 @@
 
 ActiveSupport::Inflector.inflections(:en) do |inflect|
   # Corrige o problema com SunriseSunsetData
-  inflect.irregular 'sunrise_sunset_data', 'sunrise_sunset_data'
+  inflect.irregular "sunrise_sunset_data", "sunrise_sunset_data"
 end

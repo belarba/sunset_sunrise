@@ -19,7 +19,7 @@ RSpec.shared_examples 'polar region data' do
     record = subject.first
     expect(record.sunrise).to be_nil if record.polar_night? || record.polar_day?
     expect(record.sunset).to be_nil if record.polar_night? || record.polar_day?
-    expect([true, false]).to include(record.polar_day?)
-    expect([true, false]).to include(record.polar_night?)
+    expect([ true, false ]).to include(record.polar_day?)
+    expect([ true, false ]).to include(record.polar_night?)
   end
 end

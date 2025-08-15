@@ -1,13 +1,13 @@
 class SunriseSunsetService
   include HTTParty
-  base_uri ENV.fetch('SUNRISE_SUNSET_API_URL') { 'https://api.sunrisesunset.io' }
+  base_uri ENV.fetch("SUNRISE_SUNSET_API_URL") { "https://api.sunrisesunset.io" }
 
   class ApiError < StandardError; end
   class InvalidLocationError < StandardError; end
   class DateRangeError < StandardError; end
 
-  MAX_DATE_RANGE_DAYS = ENV.fetch('MAX_DATE_RANGE_DAYS') { 365 }.to_i
-  API_TIMEOUT = ENV.fetch('API_TIMEOUT') { 15 }.to_i
+  MAX_DATE_RANGE_DAYS = ENV.fetch("MAX_DATE_RANGE_DAYS") { 365 }.to_i
+  API_TIMEOUT = ENV.fetch("API_TIMEOUT") { 15 }.to_i
 
   def self.fetch_data(location_name, start_date, end_date)
     new.fetch_data(location_name, start_date, end_date)
@@ -93,11 +93,11 @@ class SunriseSunsetService
   end
 
   def fetch_single_date(location, date)
-    response = self.class.get('/json', {
+    response = self.class.get("/json", {
       query: {
         lat: location.latitude,
         lng: location.longitude,
-        date: date.strftime('%Y-%m-%d')
+        date: date.strftime("%Y-%m-%d")
       },
       timeout: API_TIMEOUT
     })
@@ -115,7 +115,7 @@ class SunriseSunsetService
 
     data = response.parsed_response
 
-    if data['status'] != 'OK'
+    if data["status"] != "OK"
       handle_api_error(data, location, date)
       return nil
     end
@@ -124,12 +124,12 @@ class SunriseSunsetService
   end
 
   def handle_api_error(data, location, date)
-    case data['status']
-    when 'INVALID_REQUEST'
+    case data["status"]
+    when "INVALID_REQUEST"
       Rails.logger.warn "Invalid request for #{location.display_name} on #{date}"
-    when 'INVALID_DATE'
+    when "INVALID_DATE"
       Rails.logger.warn "Invalid date #{date} for #{location.display_name}"
-    when 'UNKNOWN_ERROR'
+    when "UNKNOWN_ERROR"
       Rails.logger.error "Unknown error from API for #{location.display_name} on #{date}"
     end
 
@@ -140,18 +140,18 @@ class SunriseSunsetService
   end
 
   def create_sunrise_sunset_data(api_data, location, date)
-    results = api_data['results']
+    results = api_data["results"]
 
     SunriseSunsetData.create!(
       location: location,
       date: date,
-      sunrise: parse_time_simple(results['sunrise']),
-      sunset: parse_time_simple(results['sunset']),
-      solar_noon: parse_time_simple(results['solar_noon']),
-      day_length_seconds: parse_duration(results['day_length']),
-      golden_hour: parse_time_simple(results['golden_hour']),
-      timezone: results['timezone'],
-      utc_offset: results['utc_offset'],
+      sunrise: parse_time_simple(results["sunrise"]),
+      sunset: parse_time_simple(results["sunset"]),
+      solar_noon: parse_time_simple(results["solar_noon"]),
+      day_length_seconds: parse_duration(results["day_length"]),
+      golden_hour: parse_time_simple(results["golden_hour"]),
+      timezone: results["timezone"],
+      utc_offset: results["utc_offset"],
       raw_api_data: api_data
     )
   end
@@ -168,20 +168,20 @@ class SunriseSunsetService
       golden_hour: nil,
       timezone: nil,
       utc_offset: nil,
-      raw_api_data: { status: 'POLAR_REGION', latitude: location.latitude, longitude: location.longitude, date: date }
+      raw_api_data: { status: "POLAR_REGION", latitude: location.latitude, longitude: location.longitude, date: date }
     )
   end
 
   def calculate_golden_hour(results)
-    sunrise = parse_time(results['sunrise'])
-    sunset = parse_time(results['sunset'])
+    sunrise = parse_time(results["sunrise"])
+    sunset = parse_time(results["sunset"])
 
-    return [nil, nil] unless sunrise && sunset
+    return [ nil, nil ] unless sunrise && sunset
 
     golden_hour_begin = sunrise + 1.hour  # Start 1 hour after sunrise
     golden_hour_end = sunset - 1.hour     # End 1 hour before sunset
 
-    [golden_hour_begin, golden_hour_end]
+    [ golden_hour_begin, golden_hour_end ]
   end
 
   def parse_time_simple(time_string)
@@ -207,7 +207,7 @@ class SunriseSunsetService
   def parse_duration(duration_string)
     return nil if duration_string.blank?
 
-    parts = duration_string.split(':')
+    parts = duration_string.split(":")
     return nil unless parts.length == 3
 
     hours = parts[0].to_i
@@ -232,18 +232,18 @@ class SunriseSunsetService
   def polar_summer?(latitude, date)
     month = date.month
     if latitude > 0  # Northern hemisphere
-      [5, 6, 7, 8].include?(month)
+      [ 5, 6, 7, 8 ].include?(month)
     else  # Southern hemisphere
-      [11, 12, 1, 2].include?(month)
+      [ 11, 12, 1, 2 ].include?(month)
     end
   end
 
   def polar_winter?(latitude, date)
     month = date.month
     if latitude > 0  # Northern hemisphere
-      [11, 12, 1, 2].include?(month)
+      [ 11, 12, 1, 2 ].include?(month)
     else  # Southern hemisphere
-      [5, 6, 7, 8].include?(month)
+      [ 5, 6, 7, 8 ].include?(month)
     end
   end
 end

@@ -9,10 +9,10 @@ end
 
 json.database_status do
   begin
-    ActiveRecord::Base.connection.execute('SELECT 1')
-    json.status 'connected'
+    ActiveRecord::Base.connection.execute("SELECT 1")
+    json.status "connected"
   rescue => e
-    json.status 'error'
+    json.status "error"
     json.message e.message
   end
 end

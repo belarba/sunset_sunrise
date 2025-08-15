@@ -1,5 +1,5 @@
 class Api::V1::SunriseSunsetController < ApplicationController
-  before_action :validate_params, only: [:index]
+  before_action :validate_params, only: [ :index ]
 
   def index
     @data = SunriseSunsetService.fetch_data(
@@ -17,7 +17,7 @@ class Api::V1::SunriseSunsetController < ApplicationController
     }
 
     render json: {
-      status: 'success',
+      status: "success",
       data: @data.map do |record|
         {
           id: record.id,
@@ -25,12 +25,12 @@ class Api::V1::SunriseSunsetController < ApplicationController
           latitude: record.latitude.to_f,
           longitude: record.longitude.to_f,
           date: record.date,
-          sunrise: record.sunrise&.strftime('%H:%M:%S'),
-          sunset: record.sunset&.strftime('%H:%M:%S'),
-          solar_noon: record.solar_noon&.strftime('%H:%M:%S'),
+          sunrise: record.sunrise&.strftime("%H:%M:%S"),
+          sunset: record.sunset&.strftime("%H:%M:%S"),
+          solar_noon: record.solar_noon&.strftime("%H:%M:%S"),
           day_length_seconds: record.day_length_seconds,
           day_length_formatted: record.day_length_formatted,
-          golden_hour: record.golden_hour&.strftime('%H:%M:%S'),
+          golden_hour: record.golden_hour&.strftime("%H:%M:%S"),
           timezone: record.timezone,
           utc_offset: record.utc_offset,
           polar_day: record.polar_day?,
@@ -44,24 +44,24 @@ class Api::V1::SunriseSunsetController < ApplicationController
 
   rescue SunriseSunsetService::InvalidLocationError => e
     render json: {
-      status: 'error',
-      error: 'invalid_location',
+      status: "error",
+      error: "invalid_location",
       message: e.message,
       timestamp: Time.current.iso8601
     }, status: :unprocessable_content
 
   rescue SunriseSunsetService::DateRangeError => e
     render json: {
-      status: 'error',
-      error: 'invalid_date_range',
+      status: "error",
+      error: "invalid_date_range",
       message: e.message,
       timestamp: Time.current.iso8601
     }, status: :unprocessable_content
 
   rescue SunriseSunsetService::ApiError => e
     render json: {
-      status: 'error',
-      error: 'api_error',
+      status: "error",
+      error: "api_error",
       message: e.message,
       timestamp: Time.current.iso8601
     }, status: :service_unavailable
@@ -71,15 +71,15 @@ class Api::V1::SunriseSunsetController < ApplicationController
     Rails.logger.error e.backtrace.join("\n")
 
     render json: {
-      status: 'error',
-      error: 'internal_error',
-      message: 'An unexpected error occurred',
+      status: "error",
+      error: "internal_error",
+      message: "An unexpected error occurred",
       timestamp: Time.current.iso8601
     }, status: :internal_server_error
   end
 
   def locations
-    cache_expires_in = ENV.fetch('LOCATIONS_CACHE_EXPIRES_IN') { 3600 }.to_i
+    cache_expires_in = ENV.fetch("LOCATIONS_CACHE_EXPIRES_IN") { 3600 }.to_i
     cache_key = "recent_locations_v3:#{Date.current}"
 
     @locations = begin
@@ -92,7 +92,7 @@ class Api::V1::SunriseSunsetController < ApplicationController
     end
 
     render json: {
-      status: 'success',
+      status: "success",
       locations: @locations,
       total_count: @locations.size,
       cached_at: Time.current.iso8601,
@@ -102,15 +102,15 @@ class Api::V1::SunriseSunsetController < ApplicationController
 
   def health
     database_status = begin
-      ActiveRecord::Base.connection.execute('SELECT 1')
-      { status: 'connected' }
+      ActiveRecord::Base.connection.execute("SELECT 1")
+      { status: "connected" }
     rescue => e
-      { status: 'error', message: e.message }
+      { status: "error", message: e.message }
     end
 
     render json: {
-      status: 'healthy',
-      version: Rails.application.config.respond_to?(:app_version) ? Rails.application.config.app_version : '1.0.0',
+      status: "healthy",
+      version: Rails.application.config.respond_to?(:app_version) ? Rails.application.config.app_version : "1.0.0",
       timestamp: Time.current.iso8601,
       uptime_info: {
         rails_env: Rails.env,
@@ -129,10 +129,10 @@ class Api::V1::SunriseSunsetController < ApplicationController
 
     Location
       .joins(:sunrise_sunset_data)
-      .select('locations.display_name')
+      .select("locations.display_name")
       .distinct
-      .order('MAX(sunrise_sunset_data.created_at) DESC')
-      .group('locations.id, locations.display_name')
+      .order("MAX(sunrise_sunset_data.created_at) DESC")
+      .group("locations.id, locations.display_name")
       .limit(20)
       .pluck(:display_name)
   rescue => e
@@ -146,8 +146,8 @@ class Api::V1::SunriseSunsetController < ApplicationController
 
     if missing_params.any?
       render json: {
-        status: 'error',
-        error: 'missing_parameters',
+        status: "error",
+        error: "missing_parameters",
         message: "Missing required parameters: #{missing_params.join(', ')}",
         timestamp: Time.current.iso8601
       }, status: :bad_request
@@ -159,9 +159,9 @@ class Api::V1::SunriseSunsetController < ApplicationController
       Date.parse(params[:end_date])
     rescue ArgumentError
       render json: {
-        status: 'error',
-        error: 'invalid_date_format',
-        message: 'Dates must be in YYYY-MM-DD format',
+        status: "error",
+        error: "invalid_date_format",
+        message: "Dates must be in YYYY-MM-DD format",
         timestamp: Time.current.iso8601
       }, status: :bad_request
     end

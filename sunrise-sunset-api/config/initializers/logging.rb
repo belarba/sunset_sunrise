@@ -6,7 +6,7 @@ if Rails.env.production?
         timestamp: timestamp.iso8601,
         level: severity,
         message: msg,
-        service: 'sunrise-sunset-api'
+        service: "sunrise-sunset-api"
       }.to_json + "\n"
     end
   end

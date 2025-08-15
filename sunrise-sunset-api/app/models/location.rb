@@ -1,5 +1,5 @@
 class Location < ApplicationRecord
-  has_many :sunrise_sunset_data, class_name: 'SunriseSunsetData', dependent: :destroy
+  has_many :sunrise_sunset_data, class_name: "SunriseSunsetData", dependent: :destroy
 
   validates :name, presence: true
   validates :search_name, presence: true, uniqueness: true
@@ -65,9 +65,9 @@ class Location < ApplicationRecord
   end
 
   def self.build_display_name(coordinates)
-    parts = [coordinates[:name]]
+    parts = [ coordinates[:name] ]
     parts << coordinates[:admin1] if coordinates[:admin1].present?
     parts << coordinates[:country] if coordinates[:country].present?
-    parts.join(', ')
+    parts.join(", ")
   end
 end

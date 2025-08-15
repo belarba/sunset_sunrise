@@ -39,8 +39,8 @@ class SunriseSunsetData < ApplicationRecord
 
   def as_json(options = {})
     super(options.merge(
-      methods: [:day_length_formatted, :polar_day?, :polar_night?, :latitude, :longitude, :location_name],
-      except: [:raw_api_data]
+      methods: [ :day_length_formatted, :polar_day?, :polar_night?, :latitude, :longitude, :location_name ],
+      except: [ :raw_api_data ]
     ))
   end
 end
