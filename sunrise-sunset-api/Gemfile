@@ -29,7 +29,6 @@ gem "kamal", require: false
 # Add HTTP asset caching/compression and X-Sendfile acceleration to Puma [https://github.com/basecamp/thruster/]
 gem "thruster", require: false
 
-gem "image_processing", "~> 1.2"
 # HTTP requests
 gem "httparty"
 
@@ -38,12 +37,6 @@ gem "rack-cors"
 
 # Environment variables
 gem "dotenv-rails"
-
-# Validation and serialization
-gem "active_model_serializers"
-
-# Background jobs (for future optimization)
-gem "sidekiq"
 
 
 group :development, :test do
