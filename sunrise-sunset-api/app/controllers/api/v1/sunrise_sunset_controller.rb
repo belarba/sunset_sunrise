@@ -80,7 +80,7 @@ class Api::V1::SunriseSunsetController < ApplicationController
 
   def locations
     cache_expires_in = ENV.fetch("LOCATIONS_CACHE_EXPIRES_IN") { 3600 }.to_i
-    cache_key = "recent_locations_v3:#{Date.current}"
+    cache_key = "recent_locations_v4:#{Date.current}"
 
     @locations = begin
       Rails.cache.fetch(cache_key, expires_in: cache_expires_in.seconds) do
@@ -124,19 +124,32 @@ class Api::V1::SunriseSunsetController < ApplicationController
   private
 
   def get_recent_locations
-    # Agora busca locations com base nos dados de sunrise_sunset_data mais recentes
+    # CORRIGIDO: Query SQL simplificada para evitar o erro do PostgreSQL
     ActiveRecord::Base.clear_active_connections! if ActiveRecord::Base.connection.transaction_open?
 
-    Location
-      .joins(:sunrise_sunset_data)
-      .select("locations.display_name")
-      .distinct
-      .order("MAX(sunrise_sunset_data.created_at) DESC")
-      .group("locations.id, locations.display_name")
+    # Usar um LEFT JOIN e subconsulta para resolver o problema do ORDER BY com DISTINCT
+    recent_location_ids = SunriseSunsetData
+      .joins(:location)
+      .select("locations.id, MAX(sunrise_sunset_data.created_at) as last_used")
+      .group("locations.id")
+      .order("last_used DESC")
       .limit(20)
-      .pluck(:display_name)
+      .pluck("locations.id")
+
+    # Buscar os display_names das locations encontradas, mantendo a ordem
+    if recent_location_ids.any?
+      locations_hash = Location.where(id: recent_location_ids)
+                              .pluck(:id, :display_name)
+                              .to_h
+
+      # Manter a ordem original baseada no last_used
+      recent_location_ids.filter_map { |id| locations_hash[id] }
+    else
+      []
+    end
   rescue => e
     Rails.logger.error "Database error in locations: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
     []
   end
 

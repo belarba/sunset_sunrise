@@ -214,7 +214,7 @@ export const SearchForm = ({ onSubmit, loading }: Props) => {
                 id="start_date"
                 type="date"
                 hasError={!!errors.start_date}
-                max={format(new Date(), 'yyyy-MM-dd')}
+                max={format(addYears(new Date(), 1), 'yyyy-MM-dd')} // Permitir até 1 ano no futuro
                 min="1900-01-01"
               />
               {errors.start_date && (

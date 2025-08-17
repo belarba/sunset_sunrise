@@ -251,11 +251,15 @@ function App() {
     setLoading(true);
     
     try {
+      console.log('🔍 Starting search with data:', formData);
+      
       const response = await sunriseSunsetService.getSunriseSunsetData(
         formData.location,
         formData.start_date,
         formData.end_date
       );
+
+      console.log('📦 API Response:', response);
 
       if (response.status === 'success' && response.data) {
         setData(response.data);
@@ -272,8 +276,12 @@ function App() {
           },
         });
       } else {
-        toast.error(`❌ ${response.message || 'Failed to fetch data'}`, {
-          duration: 5000,
+        // Resposta de erro estruturada do backend
+        const errorMessage = getErrorMessage(response);
+        console.log('📋 Structured error:', errorMessage);
+        
+        toast.error(errorMessage, {
+          duration: 6000,
           style: {
             background: '#ef4444',
             color: '#fff',
@@ -287,8 +295,9 @@ function App() {
         setMeta(undefined);
       }
     } catch (error) {
-      console.error('Search error:', error);
-      toast.error('🔌 Network error occurred. Please check if the backend is running on port 3000.', {
+      // Este catch só deve ser acionado para erros JavaScript não relacionados à API
+      console.error('🔴 Unexpected error in handleSearch:', error);
+      toast.error('💥 An unexpected error occurred in the application', {
         duration: 6000,
         style: {
           background: '#ef4444',
@@ -303,6 +312,44 @@ function App() {
       setMeta(undefined);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Função auxiliar para gerar mensagens de erro mais específicas
+  const getErrorMessage = (response: ApiResponse): string => {
+    if (response.status !== 'error') {
+      return 'Unknown response format';
+    }
+
+    const baseMessage = response.message || 'An error occurred';
+    
+    switch (response.error) {
+      case 'invalid_location':
+        return `🌍 ${baseMessage}. Please check the location name and try again.`;
+      
+      case 'invalid_date_range':
+        return `📅 ${baseMessage}. Please check your date selection.`;
+      
+      case 'missing_parameters':
+        return `📝 ${baseMessage}. Please fill in all required fields.`;
+      
+      case 'invalid_date_format':
+        return `📅 ${baseMessage}. Please use the date picker to select valid dates.`;
+      
+      case 'api_error':
+        return `🔌 External API error: ${baseMessage}. Please try again in a few moments.`;
+      
+      case 'network_error':
+        return `🌐 Network error: ${baseMessage}`;
+      
+      case 'http_error':
+        return `🔧 Server error: ${baseMessage}. Please try again later.`;
+      
+      case 'internal_error':
+        return `⚙️ Internal server error. Please try again or contact support if the problem persists.`;
+      
+      default:
+        return `❌ ${baseMessage}`;
     }
   };
 

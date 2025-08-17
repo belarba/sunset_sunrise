@@ -99,9 +99,12 @@ describe('sunriseSunsetService', () => {
       mockAxiosInstance.get.mockRejectedValue(networkError);
       mockAxios.isAxiosError.mockReturnValue(false);
 
-      await expect(
-        sunriseSunsetService.getSunriseSunsetData('Lisbon', '2024-08-01', '2024-08-01')
-      ).rejects.toThrow('Network error occurred');
+      // CORRIGIDO: Agora esperamos um objeto de erro, não uma exceção
+      const result = await sunriseSunsetService.getSunriseSunsetData('Lisbon', '2024-08-01', '2024-08-01');
+      
+      expect(result.status).toBe('error');
+      expect(result.error).toBe('unknown_error');
+      expect(result.message).toBe('Network failed');
     });
   });
 
