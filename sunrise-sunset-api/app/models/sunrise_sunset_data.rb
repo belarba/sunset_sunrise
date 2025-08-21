@@ -30,11 +30,33 @@ class SunriseSunsetData < ApplicationRecord
   end
 
   def polar_day?
-    sunrise.nil? && sunset.nil? && day_length_seconds && day_length_seconds >= 86400
+    polar_summer_period? if sunrise.nil? && sunset.nil? && day_length_seconds && day_length_seconds >= 86400
   end
 
   def polar_night?
-    sunrise.nil? && sunset.nil? && day_length_seconds && day_length_seconds <= 0
+    polar_winter_period? if sunrise.nil? && sunset.nil? && day_length_seconds && day_length_seconds <= 0
+  end
+
+  def polar_summer_period?
+    return false unless location.polar_region?
+
+    month = date.month
+    if latitude > 0  # Hemisfério Norte
+      [5, 6, 7, 8].include?(month)  # Maio a Agosto
+    else  # Hemisfério Sul
+      [11, 12, 1, 2].include?(month)  # Novembro a Fevereiro
+    end
+  end
+
+  def polar_winter_period?
+    return false unless location.polar_region?
+
+    month = date.month
+    if latitude > 0  # Hemisfério Norte
+      [11, 12, 1, 2].include?(month)  # Novembro a Fevereiro
+    else  # Hemisfério Sul
+      [5, 6, 7, 8].include?(month)  # Maio a Agosto
+    end
   end
 
   def as_json(options = {})

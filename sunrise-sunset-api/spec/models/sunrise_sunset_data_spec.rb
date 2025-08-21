@@ -94,28 +94,80 @@ RSpec.describe SunriseSunsetData, type: :model do
     end
 
     describe '#polar_day?' do
-      it 'returns true for polar day conditions' do
-        subject.sunrise = nil
-        subject.sunset = nil
-        subject.day_length_seconds = 86400
-        expect(subject.polar_day?).to be true
-      end
+      context 'with polar day conditions' do
+        let(:arctic_location) { create(:location, :polar_region) }
 
-      it 'returns false for normal day conditions' do
-        expect(subject.polar_day?).to be false
+        it 'returns true for 24-hour daylight in summer' do
+          data = create(:sunrise_sunset_data,
+            location: arctic_location,
+            date: Date.new(2024, 6, 15), # Junho - verão ártico
+            sunrise: nil,
+            sunset: nil,
+            day_length_seconds: 86400
+          )
+          expect(data.polar_day?).to be true
+        end
+
+        it 'returns false for 24-hour daylight in wrong season' do
+          data = create(:sunrise_sunset_data,
+            location: arctic_location,
+            date: Date.new(2024, 12, 15), # Dezembro - inverno ártico
+            sunrise: nil,
+            sunset: nil,
+            day_length_seconds: 86400
+          )
+          expect(data.polar_day?).to be false
+        end
+
+        it 'returns false when not in polar region' do
+          normal_location = create(:location, latitude: 45.0) # Não polar
+          data = create(:sunrise_sunset_data,
+            location: normal_location,
+            sunrise: nil,
+            sunset: nil,
+            day_length_seconds: 86400
+          )
+          expect(data.polar_day?).to be false
+        end
       end
     end
 
     describe '#polar_night?' do
-      it 'returns true for polar night conditions' do
-        subject.sunrise = nil
-        subject.sunset = nil
-        subject.day_length_seconds = 0
-        expect(subject.polar_night?).to be true
-      end
+      context 'with polar night conditions' do
+        let(:arctic_location) { create(:location, :polar_region) }
 
-      it 'returns false for normal day conditions' do
-        expect(subject.polar_night?).to be false
+        it 'returns true for 0-hour daylight in winter' do
+          data = create(:sunrise_sunset_data,
+            location: arctic_location,
+            date: Date.new(2024, 12, 15), # Dezembro - inverno ártico
+            sunrise: nil,
+            sunset: nil,
+            day_length_seconds: 0
+          )
+          expect(data.polar_night?).to be true
+        end
+
+        it 'returns false for 0-hour daylight in wrong season' do
+          data = create(:sunrise_sunset_data,
+            location: arctic_location,
+            date: Date.new(2024, 6, 15), # Junho - verão ártico
+            sunrise: nil,
+            sunset: nil,
+            day_length_seconds: 0
+          )
+          expect(data.polar_night?).to be false
+        end
+
+        it 'returns false when not in polar region' do
+          normal_location = create(:location, latitude: 45.0) # Não polar
+          data = create(:sunrise_sunset_data,
+            location: normal_location,
+            sunrise: nil,
+            sunset: nil,
+            day_length_seconds: 0
+          )
+          expect(data.polar_night?).to be false
+        end
       end
     end
 
