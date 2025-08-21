@@ -132,11 +132,6 @@ class SunriseSunsetService
     when "UNKNOWN_ERROR"
       Rails.logger.error "Unknown error from API for #{location.display_name} on #{date}"
     end
-
-    # For polar regions, create a record with nil values
-    if polar_region?(location.latitude)
-      create_polar_region_data(location, date)
-    end
   end
 
   def create_sunrise_sunset_data(api_data, location, date)
@@ -153,22 +148,6 @@ class SunriseSunsetService
       timezone: results["timezone"],
       utc_offset: results["utc_offset"],
       raw_api_data: api_data
-    )
-  end
-
-  def create_polar_region_data(location, date)
-    # For polar regions where sun doesn't rise/set
-    SunriseSunsetData.create!(
-      location: location,
-      date: date,
-      sunrise: nil,
-      sunset: nil,
-      solar_noon: nil,
-      day_length_seconds: polar_day_length(location.latitude, date),
-      golden_hour: nil,
-      timezone: nil,
-      utc_offset: nil,
-      raw_api_data: { status: "POLAR_REGION", latitude: location.latitude, longitude: location.longitude, date: date }
     )
   end
 
@@ -217,33 +196,5 @@ class SunriseSunsetService
     (hours * 3600) + (minutes * 60) + seconds
   rescue
     nil
-  end
-
-  def polar_region?(latitude)
-    latitude.abs >= 66.5
-  end
-
-  def polar_day_length(latitude, date)
-    return 86400 if polar_summer?(latitude, date)  # 24 hours
-    return 0 if polar_winter?(latitude, date)      # 0 hours
-    nil # Transition periods
-  end
-
-  def polar_summer?(latitude, date)
-    month = date.month
-    if latitude > 0  # Northern hemisphere
-      [ 5, 6, 7, 8 ].include?(month)
-    else  # Southern hemisphere
-      [ 11, 12, 1, 2 ].include?(month)
-    end
-  end
-
-  def polar_winter?(latitude, date)
-    month = date.month
-    if latitude > 0  # Northern hemisphere
-      [ 11, 12, 1, 2 ].include?(month)
-    else  # Southern hemisphere
-      [ 5, 6, 7, 8 ].include?(month)
-    end
   end
 end

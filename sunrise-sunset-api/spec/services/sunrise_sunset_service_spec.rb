@@ -140,23 +140,6 @@ RSpec.describe SunriseSunsetService do
         result = described_class.fetch_data(location, start_date, end_date)
         expect(result).to be_an(Array)
       end
-
-      it 'handles polar regions correctly' do
-        polar_location = create(:location, :polar_region)
-        allow(Location).to receive(:find_or_create_by_search_term)
-          .and_return(polar_location)
-
-        # Mock the service to create polar region data
-        allow_any_instance_of(described_class).to receive(:fetch_single_date) do |instance, location, date|
-          instance.send(:create_polar_region_data, location, date)
-        end
-
-        result = described_class.fetch_data(location, start_date, end_date)
-
-        expect(result).not_to be_empty
-        expect(result.first.sunrise).to be_nil
-        expect(result.first.sunset).to be_nil
-      end
     end
   end
 
@@ -189,14 +172,6 @@ RSpec.describe SunriseSunsetService do
       it 'returns nil for invalid duration' do
         result = service.send(:parse_duration, 'invalid')
         expect(result).to be_nil
-      end
-    end
-
-    describe '#polar_region?' do
-      it 'identifies polar regions correctly' do
-        expect(service.send(:polar_region?, 70)).to be true
-        expect(service.send(:polar_region?, -70)).to be true
-        expect(service.send(:polar_region?, 45)).to be false
       end
     end
 
