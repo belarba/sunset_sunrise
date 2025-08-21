@@ -132,7 +132,7 @@ class Api::V1::SunriseSunsetController < ApplicationController
       .joins(:location)
       .select("locations.id, MAX(sunrise_sunset_data.created_at) as last_used")
       .group("locations.id")
-      .order("last_used DESC")
+      .order("sunrise_sunset_data.created_at DESC")
       .limit(20)
       .pluck("locations.id")
 
@@ -142,7 +142,6 @@ class Api::V1::SunriseSunsetController < ApplicationController
                               .pluck(:id, :display_name)
                               .to_h
 
-      # Manter a ordem original baseada no last_used
       recent_location_ids.filter_map { |id| locations_hash[id] }
     else
       []
