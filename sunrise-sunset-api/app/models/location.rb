@@ -10,6 +10,29 @@ class Location < ApplicationRecord
 
   scope :by_coordinates, ->(lat, lng) { where(latitude: lat, longitude: lng) }
 
+  # Novo scope para buscar locations recentes
+  scope :recently_used, ->(limit = 20) do
+    joins(:sunrise_sunset_data)
+      .select('locations.*, MAX(sunrise_sunset_data.created_at) as last_used_at')
+      .group('locations.id')
+      .order('MAX(sunrise_sunset_data.created_at) DESC')
+      .limit(limit)
+  end
+
+  # Scope alternativo para PostgreSQL usando DISTINCT ON
+  scope :recently_used_postgresql, ->(limit = 20) do
+    joins(:sunrise_sunset_data)
+      .select('DISTINCT ON (locations.id) locations.*, sunrise_sunset_data.created_at as last_used_at')
+      .order('locations.id, sunrise_sunset_data.created_at DESC')
+      .limit(limit)
+      .reorder('last_used_at DESC')
+  end
+
+  # Scope para buscar apenas nomes únicos de locations recentes
+  scope :recent_display_names, ->(limit = 20) do
+    recently_used(limit).where.not(display_name: nil).map(&:display_name)
+  end
+
   before_validation :normalize_search_name
 
   def self.find_or_create_by_search_term(search_term)
@@ -48,6 +71,22 @@ class Location < ApplicationRecord
       display_name: build_display_name(coordinates),
       raw_geocoding_data: coordinates
     )
+  end
+
+  # Método de classe para buscar locations recentes de forma inteligente
+  def self.get_recent_locations(limit = 20)
+    # Implementação simples e robusta
+    joins(:sunrise_sunset_data)
+      .select('locations.display_name, MAX(sunrise_sunset_data.created_at) as last_used_at')
+      .where.not(display_name: nil)
+      .group('locations.id, locations.display_name')
+      .order('MAX(sunrise_sunset_data.created_at) DESC')
+      .limit(limit)
+      .map(&:display_name)
+      .compact
+  rescue => e
+    Rails.logger.error "Error fetching recent locations: #{e.message}"
+    []
   end
 
   def polar_region?
